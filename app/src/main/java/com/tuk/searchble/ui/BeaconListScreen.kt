@@ -1,5 +1,11 @@
 package com.tuk.searchble.ui
 
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,9 +35,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tuk.searchble.model.Beacon
+import com.tuk.searchble.service.BeaconScanService
 import com.tuk.searchble.viewmodel.IBeaconViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +49,24 @@ fun BeaconListScreen(
     onBeaconSelected: (Beacon) -> Unit
 ) {
     val beaconList by viewModel.beaconListFlow.collectAsState()
-    var scanStarted by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var serviceBinder by remember { mutableStateOf<BeaconScanService.LocalBinder?>(null) }
+
+    // 1) 서비스에 바인딩
+    DisposableEffect(Unit) {
+        val conn = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
+                serviceBinder = binder as BeaconScanService.LocalBinder
+            }
+            override fun onServiceDisconnected(name: ComponentName?) {
+                serviceBinder = null
+            }
+        }
+        context.bindService(Intent(context, BeaconScanService::class.java), conn, Context.BIND_AUTO_CREATE)
+        onDispose {
+            context.unbindService(conn)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -66,11 +92,10 @@ fun BeaconListScreen(
                 verticalArrangement = Arrangement.Top
             ) {
                 // 스캔 시작/중지 버튼 영역
-                if (!scanStarted) {
+                if (serviceBinder?.isScanning() != true) {
                     ElevatedButton(
                         onClick = {
                             viewModel.startScan()
-                            scanStarted = true
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -83,7 +108,6 @@ fun BeaconListScreen(
                     ElevatedButton(
                         onClick = {
                             viewModel.stopScan() // 스캔 중지 함수, 구현되어 있다면
-                            scanStarted = false
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {

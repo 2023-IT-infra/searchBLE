@@ -1,6 +1,5 @@
 package com.tuk.searchble.repository
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -9,11 +8,8 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import com.tuk.searchble.model.Beacon
 import com.tuk.searchble.model.isIBeacon
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -37,6 +33,9 @@ class BeaconRepository @Inject constructor(
     val beaconsFlow = _beaconsFlow.asStateFlow()
     // Beacon 객체를 저장하는 Map (key: MAC 주소)
     private val foundBeacons = mutableMapOf<String, Beacon>()
+
+    private val _isScanning = MutableStateFlow(false)
+    val isScanningFlow = _isScanning.asStateFlow()
 
     // BLE 스캔 Callback
     private val scanCallback = object : ScanCallback() {
@@ -107,12 +106,14 @@ class BeaconRepository @Inject constructor(
             .build()
         val filters: List<ScanFilter> = emptyList()
         bleScanner?.startScan(filters, settings, scanCallback)
+        _isScanning.value = true
         Toast.makeText(context, "BLE 스캔 시작", Toast.LENGTH_SHORT).show()
     }
 
     @SuppressLint("MissingPermission")
     fun stopScan() {
         bleScanner?.stopScan(scanCallback)
+        _isScanning.value = false
         Toast.makeText(context, "BLE 스캔 중지", Toast.LENGTH_SHORT).show()
     }
 }

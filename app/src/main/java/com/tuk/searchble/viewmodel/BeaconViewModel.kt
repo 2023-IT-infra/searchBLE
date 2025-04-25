@@ -1,15 +1,18 @@
 package com.tuk.searchble.viewmodel
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tuk.searchble.model.Beacon
 import com.tuk.searchble.model.MajorChangeEvent
 import com.tuk.searchble.service.processBeacon
 import com.tuk.searchble.repository.BeaconRepository
+import com.tuk.searchble.service.BeaconScanService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -47,11 +50,17 @@ class BeaconViewModel @Inject constructor(
     }
 
     override fun startScan() {
-        beaconRepository.startScan()
+        Intent(context, BeaconScanService::class.java).also {
+            it.action = BeaconScanService.ACTION_START
+            ContextCompat.startForegroundService(context, it)
+        }
     }
 
     override fun stopScan() {
-        beaconRepository.stopScan()
+        Intent(context, BeaconScanService::class.java).also {
+            it.action = BeaconScanService.ACTION_STOP
+            context.stopService(it)
+        }
     }
 
     /**
