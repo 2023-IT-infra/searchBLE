@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.util.isNotEmpty
 
 @Singleton
 class BeaconRepository @Inject constructor(
@@ -49,7 +50,7 @@ class BeaconRepository @Inject constructor(
 
                 // 비콘인 형식의 기기만 출력
                 if (manufacturerData != null &&
-                    manufacturerData.size() > 0
+                    manufacturerData.isNotEmpty()
                     ) {
 
                     val manufacturerSpecificData = manufacturerData.valueAt(0)

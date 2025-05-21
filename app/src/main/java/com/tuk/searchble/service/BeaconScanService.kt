@@ -21,7 +21,6 @@ import javax.inject.Inject
 class BeaconScanService : LifecycleService() {
     @Inject lateinit var beaconRepository: BeaconRepository
 
-
     companion object {
         const val ACTION_START = "ACTION_START_SCAN"
         const val ACTION_STOP  = "ACTION_STOP_SCAN"
@@ -34,7 +33,7 @@ class BeaconScanService : LifecycleService() {
             ACTION_START -> startInForeground()
             ACTION_STOP  -> {
                 beaconRepository.stopScan()
-                stopForeground(true)
+                stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
         }

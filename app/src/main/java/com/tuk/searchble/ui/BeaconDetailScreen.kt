@@ -65,7 +65,6 @@ fun BeaconDetailScreen(
     val beacon = beaconList.find { it.id == macAddress }
     // 스크롤 상태
     val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope()
     // 자동 스크롤 토글 상태
     var autoScrollState by remember { mutableStateOf(false) }
     val context = LocalContext.current
